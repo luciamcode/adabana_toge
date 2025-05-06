@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>徒花の棘摘み</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon-192.png" sizes="192x192" />
+  <style>
+    :root {
+      --primary: #8B0000;
+      --background: #1a1a1a;
+      --text: #fff;
+    }
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: var(--background);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .container {
+      width: 100%;
+      max-width: 600px;
+      background: #2a2a2a;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+    h1 { text-align: center; color: var(--primary); }
+    .actions { display: flex; gap: .5rem; flex-wrap: wrap; margin: .5rem 0; }
+    button {
+      flex: 1;
+      padding: .75rem;
+      border: none;
+      border-radius:4px;
+      background: var(--primary);
+      color:#fff;
+      font-size:1rem;
+    }
+    input, textarea { width:100%; padding:.5rem; margin:.5rem 0; border-radius:4px; border:1px solid #444; background:#333; color:#fff; }
+    .keywords { margin: .5rem 0; font-size: .9rem; }
+    code { background: #1a1a1a; padding: .2rem .4rem; border-radius:4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>徒花の棘摘み</h1>
+    <div class="actions">
+      <button id="presetBtn">のべおじワードコピー</button>
+      <button id="ananBtn">anan語ワードコピー</button>
+      <button id="copyBtn">検索式コピー</button>
+      <button id="shareBtn">共有</button>
+    </div>
+    <textarea id="customInput" placeholder="任意ワードをカンマ区切りで追加..."></textarea>
+    <button id="saveCustom">保存</button>
+    <div class="keywords">
+      <strong>保存ワード：</strong><span id="wordList"></span>
+    </div>
+    <div class="keywords">
+      <strong>生成式：</strong><code id="pattern"></code>
+    </div>
+    <div class="actions">
+      <button id="exportBtn">エクスポート</button>
+      <button id="importBtn">インポート</button>
+      <input type="file" id="fileInput" accept="application/json" style="display:none;" />
+    </div>
+  </div>
+  <script>
+    const preset = ["っ","！","…","！！","！？","？！","〜"];
+    const anan = [...preset, "ドキッ","ハッ","うるっ","じんわり","ふわっ","あぁん"];
+    const storageKey = 'nobeKeywords';
+    let keywords = JSON.parse(localStorage.getItem(storageKey)) || preset;
+    const updateUI = () => {
+      document.getElementById('wordList').textContent = keywords.join(', ');
+      document.getElementById('pattern').textContent = keywords.join('|');
+    };
+    updateUI();
+
+    document.getElementById('presetBtn').onclick = () => {
+      navigator.clipboard.writeText(preset.join('|'));
+      alert('のべおじワード式をコピーしました');
+    };
+    document.getElementById('ananBtn').onclick = () => {
+      navigator.clipboard.writeText(anan.join('|'));
+      alert('anan語ワード式をコピーしました');
+    };
+    document.getElementById('copyBtn').onclick = () => {
+      navigator.clipboard.writeText(keywords.join('|'));
+      alert('カスタム式をコピーしました');
+    };
+    document.getElementById('shareBtn').onclick = () => {
+      const text = keywords.join('|');
+      if (navigator.share) {
+        navigator.share({ title: '徒花の棘摘み', text })
+          .catch(() => alert('共有に失敗しました'));
+      } else {
+        alert('このブラウザでは共有できません');
+      }
+    };
+    document.getElementById('saveCustom').onclick = () => {
+      const input = document.getElementById('customInput').value.split(',').map(s=>s.trim()).filter(s=>s);
+      keywords = Array.from(new Set([...preset, ...input]));
+      localStorage.setItem(storageKey, JSON.stringify(keywords));
+      updateUI();
+      alert('カスタムワードを保存しました');
+    };
+    document.getElementById('exportBtn').onclick = () => {
+      const blob = new Blob([JSON.stringify(keywords)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'nobe_keywords.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+    document.getElementById('importBtn').onclick = () => document.getElementById('fileInput').click();
+    document.getElementById('fileInput').onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        try {
+          const data = JSON.parse(reader.result);
+          if (Array.isArray(data)) {
+            keywords = Array.from(new Set([...preset, ...data]));
+            localStorage.setItem(storageKey, JSON.stringify(keywords));
+            updateUI();
+            alert('インポート成功');
+          }
+        } catch(err) { alert('インポートに失敗しました'); }
+      };
+      reader.readAsText(file);
+    };
+  </script>
+</body>
+</html>
