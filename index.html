@@ -4,140 +4,236 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>徒花の棘摘み</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon-192.png" sizes="192x192" />
   <style>
     :root {
-      --primary: #8B0000;
-      --background: #1a1a1a;
-      --text: #fff;
+      --background: #300;
+      --text: #fff0f0;
+      --accent: #faa;
     }
-    body {
-      margin: 0;
+    html, body {
+      max-width: 360px;
+      margin: 0 auto;
+      padding: 8px;
       font-family: sans-serif;
       background: var(--background);
       color: var(--text);
-      display: flex;
-      justify-content: center;
-      padding: 1rem;
-				max-width: 320px;
-				margin-inline: auto;
-				touch-action: pan-y;
-				user-select: none;
+      touch-action: pan-y;
+      user-select: none;
     }
-    .container {
+    label {
+      display: block;
+      margin: 6px 0 2px;
+      font-size: 14px;
+    }
+    fieldset {
+      border: 1px solid var(--accent);
+      padding: 8px;
+      margin-bottom: 1em;
+    }
+    legend {
+      padding: 0 6px;
+      font-weight: bold;
+    }
+    textarea {
       width: 100%;
-      max-width: 600px;
-      background: #2a2a2a;
-      border-radius: 8px;
-      padding: 1rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      user-select: text;
+      background: #fff;
+      color: #000;
+      padding: 4px;
+      box-sizing: border-box;
     }
-    h1 { text-align: center; color: var(--primary); }
-    .actions { display: flex; gap: .5rem; flex-wrap: wrap; margin: .5rem 0; }
+    input[type="file"],
+    input[type="checkbox"],
+    input[type="text"] {
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
     button {
-      flex: 1;
-      padding: .75rem;
+      width: 100%;
+      margin: 4px 0;
+      padding: 8px;
+      font-size: 14px;
+      background: var(--accent);
       border: none;
-      border-radius:4px;
-      background: var(--primary);
-      color:#fff;
-      font-size:1rem;
+      border-radius: 4px;
+      user-select: none;
     }
-    input, textarea { width:100%; padding:.5rem; margin:.5rem 0; border-radius:4px; border:1px solid #444; background:#333; color:#fff; }
-    .keywords { margin: .5rem 0; font-size: .9rem; touch-action: auto;
-  user-select: text;}
-    code { background: #1a1a1a; padding: .2rem .4rem; border-radius:4px; }
+    button:hover {
+      filter: brightness(1.1);
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 1em;
+      font-size: 13px;
+      color: #ffe;
+      white-space: pre-wrap;
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid var(--accent);
+      margin: 16px 0;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>徒花の棘摘み</h1>
-    <div class="actions">
-      <button id="presetBtn">のべおじワードコピー</button>
-      <button id="ananBtn">anan語ワードコピー</button>
-      <button id="copyBtn">検索式コピー</button>
-      <button id="shareBtn">共有</button>
-    </div>
-    <textarea id="customInput" placeholder="任意ワードをカンマ区切りで追加..."></textarea>
-    <button id="saveCustom">保存</button>
-    <div class="keywords">
-      <strong>保存ワード：</strong><span id="wordList"></span>
-    </div>
-    <div class="keywords">
-      <strong>生成式：</strong><code id="pattern"></code>
-    </div>
-    <div class="actions">
-      <button id="exportBtn">エクスポート</button>
-      <button id="importBtn">インポート</button>
-      <input type="file" id="fileInput" accept="application/json" style="display:none;" />
-    </div>
-  </div>
-  <script>
-    const preset = ["っ","！","…","！！","！？","？！","〜"];
-    const anan = [...preset, "ドキッ","ハッ","うるっ","じんわり","ふわっ","あぁん"];
-    const storageKey = 'nobeKeywords';
-    let keywords = JSON.parse(localStorage.getItem(storageKey)) || preset;
-    const updateUI = () => {
-      document.getElementById('wordList').textContent = keywords.join(', ');
-      document.getElementById('pattern').textContent = keywords.join('|');
-    };
-    updateUI();
+  <h1 style="font-size: 16px; text-align: center; margin-bottom: 16px;">徒花の棘摘み</h1>
 
-    document.getElementById('presetBtn').onclick = () => {
-      navigator.clipboard.writeText(preset.join('|'));
-      alert('のべおじワード式をコピーしました');
-    };
-    document.getElementById('ananBtn').onclick = () => {
-      navigator.clipboard.writeText(anan.join('|'));
-      alert('anan語ワード式をコピーしました');
-    };
-    document.getElementById('copyBtn').onclick = () => {
-      navigator.clipboard.writeText(keywords.join('|'));
-      alert('カスタム式をコピーしました');
-    };
-    document.getElementById('shareBtn').onclick = () => {
-      const text = keywords.join('|');
-      if (navigator.share) {
-        navigator.share({ title: '徒花の棘摘み', text })
-          .catch(() => alert('共有に失敗しました'));
-      } else {
-        alert('このブラウザでは共有できません');
+  <fieldset>
+    <legend>📝 テキスト入力</legend>
+    <label for="text">テキストを貼り付け</label>
+    <textarea id="text" rows="8" placeholder="ここにテキストを貼ってね…"></textarea>
+    <label for="loadTextFile">📂 テキストファイルから読み込み</label>
+    <input type="file" id="loadTextFile" accept=".txt" />
+  </fieldset>
+
+  <fieldset>
+    <legend>🔍 パターン入力</legend>
+    <label for="pattern">検索用正規表現（パイプ | 区切り）</label>
+    <textarea id="pattern" rows="3" placeholder="検索用正規表現を入力…"></textarea>
+    <label for="loadPatternFile">📂 パターンファイルから読み込み</label>
+    <input type="file" id="loadPatternFile" accept=".txt" />
+  </fieldset>
+
+  <fieldset>
+    <legend>⚙️ 出力オプション</legend>
+    <label><input type="checkbox" id="addHyphen" checked /> 各行に「- 」をつける（Dynalist向け）</label>
+    <label><input type="checkbox" id="inlineTagMode" /> 全文にタグを付ける（全文出力モード）</label>
+    <label><input type="checkbox" id="showLineNumber" checked /> 行番号を表示する</label>
+    <label>タグ名：<input type="text" id="tagText" value="#warn" /></label>
+  </fieldset>
+
+  <div>
+    <button onclick="analyze()">🔍 棘チェック</button>
+    <button onclick="copyResult()">📋 結果をコピー</button>
+    <button onclick="shareResult()">📤 結果を共有</button>
+    <button onclick="saveResult()">💾 結果を保存（.txt）</button>
+  </div>
+
+  <hr />
+
+  <div>
+    <button onclick="loadPreset()">🧪 サンプルデータ読み込み</button>
+  </div>
+
+  <div id="result"></div>
+
+  <script>
+    let lastSummary = "";
+
+    function normalizeInput(text) {
+      return text
+        .split('\n')
+        .map(line => line.replace(/^\s*-\s*/, ''))
+        .join('\n');
+    }
+
+    function padLineNumber(n) {
+      return String(n).padStart(2, '0');
+    }
+
+    function analyze() {
+      const text = normalizeInput(document.getElementById("text").value);
+      const pattern = document.getElementById("pattern").value.trim();
+      const addHyphen = document.getElementById("addHyphen").checked;
+      const inlineTagMode = document.getElementById("inlineTagMode").checked;
+      const showLineNumber = document.getElementById("showLineNumber").checked;
+      const tagText = document.getElementById("tagText").value.trim() || "";
+
+      if (!pattern) {
+        alert("検索条件が空です！");
+        return;
       }
-    };
-    document.getElementById('saveCustom').onclick = () => {
-      const input = document.getElementById('customInput').value.split(',').map(s=>s.trim()).filter(s=>s);
-      keywords = Array.from(new Set([...preset, ...input]));
-      localStorage.setItem(storageKey, JSON.stringify(keywords));
-      updateUI();
-      alert('カスタムワードを保存しました');
-    };
-    document.getElementById('exportBtn').onclick = () => {
-      const blob = new Blob([JSON.stringify(keywords)], {type:'application/json'});
+
+      const regex = new RegExp(pattern, "g");
+      const lines = text.split('\n');
+      const resultLines = [];
+
+      if (inlineTagMode) {
+        lines.forEach((line, i) => {
+          const matched = line.match(regex);
+          const lineNumber = showLineNumber ? padLineNumber(i + 1) + ': ' : '';
+          const prefix = addHyphen ? '- ' : '';
+          const tagged = matched ? line + ' ' + tagText : line;
+          resultLines.push(`${lineNumber}${prefix}${tagged}`);
+        });
+        lastSummary = resultLines.join('\n');
+      } else {
+        const matches = [];
+        lines.forEach((line, i) => {
+          if (line.match(regex)) {
+            const lineNumber = showLineNumber ? padLineNumber(i + 1) + ': ' : '';
+            const prefix = addHyphen ? '- ' : '';
+            matches.push(`${lineNumber}${prefix}${line}`);
+          }
+        });
+        lastSummary = matches.length
+          ? `🌵 棘っぽい表現が ${matches.length} 件 見つかりました：\n\n${matches.join('\n')}`
+          : "🪷 特に棘っぽい表現は見つかりませんでした。";
+      }
+
+      document.getElementById("result").textContent = lastSummary;
+    }
+
+    function copyResult() {
+      if (!lastSummary) return alert("先に棘チェックを実行してください！");
+      navigator.clipboard.writeText(lastSummary).then(() => alert("結果をコピーしました！"));
+    }
+
+    function shareResult() {
+      if (!lastSummary) return alert("先に棘チェックを実行してください！");
+      if (navigator.share) {
+        navigator.share({
+          title: "棘摘み 結果",
+          text: lastSummary
+        }).catch(() => {});
+      } else {
+        alert("この端末では共有機能がサポートされていません。");
+      }
+    }
+
+    function saveResult() {
+      if (!lastSummary) return alert("先に棘チェックを実行してください！");
+      const blob = new Blob([lastSummary], { type: "text/plain" });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'nobe_keywords.json';
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "棘摘み_result.txt";
       a.click();
       URL.revokeObjectURL(url);
-    };
-    document.getElementById('importBtn').onclick = () => document.getElementById('fileInput').click();
-    document.getElementById('fileInput').onchange = (e) => {
+    }
+
+    function loadPreset() {
+      const sampleText = `これは例のテキストです……！！
+- んほぉお！？ 
+- ビュルルルうう！！`;
+      document.getElementById("text").value = normalizeInput(sampleText);
+      document.getElementById("pattern").value =
+`っ|！|…|！！|！？|？！|〜|([ぁ-ん])\\1{1,}|[ア-ンー]{4,}|[が-ぽ]{3,}|[”"'！？]{3,}|んほぉ|あ”あ”|ビュル|ズチュ|うごご`;
+      alert("サンプルデータを読み込みました！");
+    }
+
+    document.getElementById("loadTextFile").addEventListener("change", function(e) {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = ()=>{
-        try {
-          const data = JSON.parse(reader.result);
-          if (Array.isArray(data)) {
-            keywords = Array.from(new Set([...preset, ...data]));
-            localStorage.setItem(storageKey, JSON.stringify(keywords));
-            updateUI();
-            alert('インポート成功');
-          }
-        } catch(err) { alert('インポートに失敗しました'); }
+      reader.onload = function(e) {
+        document.getElementById("text").value = normalizeInput(e.target.result);
       };
-      reader.readAsText(file);
-    };
+      reader.readAsText(file, "utf-8");
+    });
+
+    document.getElementById("loadPatternFile").addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById("pattern").value = e.target.result.trim();
+      };
+      reader.readAsText(file, "utf-8");
+    });
   </script>
 </body>
 </html>
